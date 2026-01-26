@@ -458,7 +458,104 @@
             </button>
         </div>
     </div>
+     <h1>🔓 تست مجوز NFC</h1>
+    
+    <div class="step">
+        <h3>مرحله ۱: بررسی پشتیبانی</h3>
+        <div id="step1">در حال بررسی...</div>
+    </div>
+    
+    <div class="step">
+        <h3>مرحله ۲: درخواست مجوز</h3>
+        <button onclick="requestPermission()">درخواست دسترسی NFC</button>
+        <div id="step2"></div>
+    </div>
+    
+    <div class="step">
+        <h3>مرحله ۳: تست خواندن</h3>
+        <button onclick="testRead()" id="testBtn" disabled>تست خواندن کارت</button>
+        <div id="step3"></div>
+    </div>
+    
+    <script>
+    let nfcPermission = 'prompt';
+    let ndefReader = null;
+    
+    // بررسی پشتیبانی
+    if ('NDEFReader' in window) {
+        document.getElementById('step1').innerHTML = '✅ Web NFC پشتیبانی می‌شود';
+        ndefReader = new NDEFReader();
+    } else {
+        document.getElementById('step1').innerHTML = '❌ Web NFC پشتیبانی نمی‌شود';
+    }
+    
+    // درخواست مجوز
+    async function requestPermission() {
+        const step2 = document.getElementById('step2');
+        step2.innerHTML = '⏳ در حال درخواست...';
+        
+        try {
+            // روش مستقیم
+            await ndefReader.scan();
+            nfcPermission = 'granted';
+            step2.innerHTML = '✅ مجوز داده شد';
+            document.getElementById('testBtn').disabled = false;
+            
+        } catch (error) {
+            if (error.name === 'NotAllowedError') {
+                step2.innerHTML = '❌ کاربر دسترسی را رد کرد';
+                nfcPermission = 'denied';
+                
+                // نمایش راهنمای دستی
+                showManualGuide();
+            } else {
+                step2.innerHTML = `❌ خطا: ${error.message}`;
+            }
+        }
+    }
+    
+    // نمایش راهنمای دستی
+    function showManualGuide() {
+        const guide = `
+            <div style="background: #fff3cd; padding: 15px; margin: 15px 0; border-radius: 10px;">
+                <strong>راهنمای دستی:</strong>
+                <ol>
+                    <li>روی آدرس بار کلیک کنید (بالای صفحه)</li>
+                    <li>آیکون قفل یا "Not secure" را بزنید</li>
+                    <li>"Site settings" را انتخاب کنید</li>
+                    <li>به پایین بروید و "NFC" را پیدا کنید</li>
+                    <li>آن را به "Allow" تغییر دهید</li>
+                    <li>صفحه را رفرش کنید</li>
+                </ol>
+                <button onclick="location.reload()">🔄 رفرش صفحه</button>
+            </div>
+        `;
+        document.getElementById('step2').innerHTML += guide;
+    }
+    
+    // تست خواندن
+    async function testRead() {
+        const step3 = document.getElementById('step3');
+        step3.innerHTML = '📱 کارت را نزدیک کنید...';
+        
+        ndefReader.onreading = (event) => {
+            step3.innerHTML = `✅ کارت خوانده شد!<br>ID: ${event.serialNumber}`;
+        };
+        
+        ndefReader.onreadingerror = () => {
+            step3.innerHTML = '❌ خطا در خواندن';
+        };
+        
+        // Timeout
+        setTimeout(() => {
+            if (step3.innerHTML.includes('کارت را نزدیک کنید')) {
+                step3.innerHTML = '⏰ زمان به پایان رسید';
+            }
+        }, 10000);
+    }
+    </script>
     
     <script src="app.js"></script>
 </body>
 </html>
+
