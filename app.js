@@ -1,3 +1,135 @@
+// اضافه کردن این کد در ابتدای app.js
+async function fixNFCPermission() {
+    // 1. بررسی آیا قبلاً مجوز داده شده
+    if (localStorage.getItem('nfc_permission_granted') === 'true') {
+        AppState.nfcPermission = 'granted';
+        return;
+    }
+    
+    // 2. ایجاد دکمه مجوز بزرگ
+    const permissionOverlay = document.createElement('div');
+    permissionOverlay.id = 'permissionOverlay';
+    permissionOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    `;
+    
+    permissionOverlay.innerHTML = `
+        <div style="
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            text-align: center;
+        ">
+            <h2 style="color: #4f46e5;">🔓 مجوز NFC مورد نیاز است</h2>
+            <p style="margin: 20px 0;">برای استفاده از سیستم حضور و غیاب، باید اجازه دسترسی به NFC را بدهید.</p>
+            
+            <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <strong>راهنمای سریع:</strong>
+                <p style="font-size: 14px; margin-top: 10px;">
+                    1. دکمه زیر را بزنید<br>
+                    2. پنجره مجوز را تایید کنید<br>
+                    3. اگر پنجره نیامد، مراحل راهنما را دنبال کنید
+                </p>
+            </div>
+            
+            <button id="grantPermissionBtn" style="
+                padding: 15px 30px;
+                background: #4f46e5;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 16px;
+                cursor: pointer;
+                width: 100%;
+                margin-bottom: 10px;
+            ">
+                ✅ دادن مجوز NFC
+            </button>
+            
+            <button onclick="location.reload()" style="
+                padding: 10px 20px;
+                background: #6b7280;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+            ">
+                🔄 رفرش بعد از دادن مجوز
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(permissionOverlay);
+    
+    // دکمه مجوز
+    document.getElementById('grantPermissionBtn').onclick = async () => {
+        try {
+            const ndef = new NDEFReader();
+            await ndef.scan();
+            
+            // موفقیت‌آمیز
+            localStorage.setItem('nfc_permission_granted', 'true');
+            permissionOverlay.remove();
+            
+            // رفرش صفحه
+            location.reload();
+            
+        } catch (error) {
+            // خطا - نمایش راهنمای بیشتر
+            permissionOverlay.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 30px;
+                    border-radius: 20px;
+                    max-width: 400px;
+                    text-align: right;
+                ">
+                    <h2 style="color: #dc2626;">⚠️ نیاز به تنظیم دستی</h2>
+                    <p>لطفاً این مراحل را دنبال کنید:</p>
+                    
+                    <ol style="padding-right: 20px; margin: 20px 0;">
+                        <li>روی آدرس بار کلیک کنید (بالای صفحه)</li>
+                        <li>آیکون 🔒 یا "Not secure" را بزنید</li>
+                        <li>"Site settings" را انتخاب کنید</li>
+                        <li>به پایین اسکرول کنید تا NFC را ببینید</li>
+                        <li>روی NFC کلیک کرده و "Allow" را انتخاب کنید</li>
+                        <li>صفحه را رفرش کنید (F5 یا دکمه زیر)</li>
+                    </ol>
+                    
+                    <div style="text-align: center;">
+                        <button onclick="location.reload()" style="
+                            padding: 12px 25px;
+                            background: #4f46e5;
+                            color: white;
+                            border: none;
+                            border-radius: 10px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            margin: 10px;
+                        ">
+                            🔄 رفرش صفحه
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    };
+}
+
+// در initApp فراخوانی کنید:
+// if (AppState.nfcPermission !== 'granted') {
+//     fixNFCPermission();
+// }
 // وضعیت برنامه
 const AppState = {
     mode: 'checkin', // 'checkin' یا 'checkout'
@@ -606,3 +738,4 @@ document.getElementById('settingsModal').addEventListener('click', (e) => {
         hideSettings();
     }
 });
+
