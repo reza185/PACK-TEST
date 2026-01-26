@@ -5,24 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سیستم حضور و غیاب NFC</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4f46e5">
-    <link rel="icon" href="icons/icon-192.png">
-    
+    <meta name="theme-color" content="#3b82f6">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             min-height: 100vh;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
         
         .container {
@@ -31,12 +29,10 @@
         }
         
         .card {
-            background: rgba(255, 255, 255, 0.95);
+            background: white;
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
         
         .header {
@@ -47,16 +43,12 @@
         .logo {
             width: 80px;
             height: 80px;
-            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
-        }
-        
-        .logo i {
             font-size: 40px;
             color: white;
         }
@@ -64,73 +56,12 @@
         h1 {
             color: #1f2937;
             font-size: 24px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         
         .subtitle {
             color: #6b7280;
             font-size: 14px;
-        }
-        
-        .mode-selector {
-            background: #f3f4f6;
-            border-radius: 12px;
-            padding: 5px;
-            display: flex;
-            margin: 25px 0;
-            position: relative;
-        }
-        
-        .mode-option {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            z-index: 1;
-        }
-        
-        .mode-option.active {
-            background: white;
-            color: #4f46e5;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .nfc-button {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(45deg, #4f46e5, #7c3aed);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
-        }
-        
-        .nfc-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(79, 70, 229, 0.4);
-        }
-        
-        .nfc-button:active {
-            transform: translateY(0);
-        }
-        
-        .nfc-button:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
         
         .status-card {
@@ -139,17 +70,6 @@
             padding: 20px;
             margin: 20px 0;
             border: 2px solid #e5e7eb;
-            transition: all 0.3s ease;
-        }
-        
-        .status-card.success {
-            border-color: #10b981;
-            background: #ecfdf5;
-        }
-        
-        .status-card.error {
-            border-color: #ef4444;
-            background: #fef2f2;
         }
         
         .status-title {
@@ -164,6 +84,89 @@
             font-weight: 600;
         }
         
+        .status-success {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        
+        .status-error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .mode-selector {
+            display: flex;
+            background: #f3f4f6;
+            border-radius: 12px;
+            padding: 5px;
+            margin: 25px 0;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .scan-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+        
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .scan-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #e5e7eb;
+            min-height: 120px;
+        }
+        
+        .result-title {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        
+        .result-content {
+            font-size: 16px;
+            color: #1f2937;
+        }
+        
         .history-card {
             background: white;
             border-radius: 12px;
@@ -176,13 +179,10 @@
             font-size: 16px;
             color: #1f2937;
             margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
         .log-item {
-            padding: 12px;
+            padding: 10px;
             border-bottom: 1px solid #f3f4f6;
             display: flex;
             justify-content: space-between;
@@ -195,7 +195,6 @@
         
         .log-name {
             font-weight: 600;
-            color: #1f2937;
         }
         
         .log-type {
@@ -205,12 +204,12 @@
             font-weight: 500;
         }
         
-        .log-type.checkin {
+        .checkin {
             background: #d1fae5;
             color: #065f46;
         }
         
-        .log-type.checkout {
+        .checkout {
             background: #fee2e2;
             color: #991b1b;
         }
@@ -219,74 +218,6 @@
             font-size: 12px;
             color: #6b7280;
             margin-top: 4px;
-        }
-        
-        .info-box {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            font-size: 13px;
-            color: #0369a1;
-        }
-        
-        .info-box ul {
-            padding-right: 20px;
-            margin-top: 8px;
-        }
-        
-        .info-box li {
-            margin-bottom: 5px;
-        }
-        
-        .settings-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-        
-        .badge.success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .badge.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        @media (max-width: 480px) {
-            .card {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 20px;
-            }
-            
-            .nfc-button {
-                padding: 16px;
-                font-size: 15px;
-            }
         }
         
         .pulse {
@@ -299,21 +230,66 @@
             100% { opacity: 1; }
         }
         
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .control-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .export-btn {
+            background: #10b981;
+            color: white;
+        }
+        
+        .clear-btn {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .test-btn {
+            background: #f59e0b;
+            color: white;
+        }
+        
         .hidden {
             display: none !important;
         }
     </style>
 </head>
 <body>
-    <button class="settings-btn" onclick="showSettings()">⚙️</button>
-    
     <div class="container">
         <div class="card">
             <!-- هدر -->
             <div class="header">
-                <div class="logo">
-                    <i>📱</i>
-                </div>
+                <div class="logo">📱</div>
                 <h1>سیستم حضور و غیاب NFC</h1>
                 <p class="subtitle">ورود و خروج هوشمند با کارت</p>
             </div>
@@ -326,27 +302,27 @@
             
             <!-- انتخاب حالت -->
             <div class="mode-selector">
-                <div class="mode-option active" onclick="setMode('checkin')" id="modeCheckin">
-                    ورود 🟢
+                <div class="mode-btn active" id="modeCheckin" onclick="setMode('checkin')">
+                    🟢 ورود
                 </div>
-                <div class="mode-option" onclick="setMode('checkout')" id="modeCheckout">
-                    خروج 🔴
+                <div class="mode-btn" id="modeCheckout" onclick="setMode('checkout')">
+                    🔴 خروج
                 </div>
             </div>
             
             <!-- دکمه اسکن -->
-            <button class="nfc-button pulse" id="scanBtn" onclick="startNFCScan()">
+            <button class="scan-btn pulse" id="scanBtn" onclick="startNFCScan()">
                 <span id="scanIcon">📲</span>
                 <span id="scanText">اسکن کارت NFC</span>
             </button>
             
-            <!-- نتیجه آخرین اسکن -->
-            <div class="status-card" id="lastScanCard">
-                <div class="status-title">آخرین اسکن</div>
-                <div class="status-message">
-                    <div id="lastScanResult">هنوز اسکنی انجام نشده</div>
-                    <div id="lastScanTime" class="log-time"></div>
+            <!-- نتیجه اسکن -->
+            <div class="result-card">
+                <div class="result-title">نتیجه آخرین اسکن</div>
+                <div class="result-content" id="scanResult">
+                    هنوز اسکنی انجام نشده
                 </div>
+                <div class="log-time" id="scanTime"></div>
             </div>
             
             <!-- تاریخچه امروز -->
@@ -356,206 +332,32 @@
                     <span class="badge" id="todayCount">0</span>
                 </div>
                 <div id="todayLogs">
-                    <!-- لاگ‌ها اینجا نمایش داده می‌شوند -->
+                    <div style="text-align: center; padding: 20px; color: #6b7280;">
+                        📭 هیچ رویدادی ثبت نشده
+                    </div>
                 </div>
             </div>
             
+            <!-- کنترل‌ها -->
+            <div class="controls">
+                <button class="control-btn export-btn" onclick="exportData()">
+                    📥 خروجی
+                </button>
+                <button class="control-btn clear-btn" onclick="clearData()">
+                    🗑️ پاکسازی
+                </button>
+                <button class="control-btn test-btn" onclick="testNFC()">
+                    🔧 تست
+                </button>
+            </div>
+            
             <!-- راهنما -->
-            <div class="info-box">
-                <strong>📌 راهنمای استفاده:</strong>
-                <ul>
-                    <li>ابتدا دکمه "اسکن کارت NFC" را فشار دهید</li>
-                    <li>کارت را پشت گوشی قرار دهید (نزدیک دوربین)</li>
-                    <li>برای تغییر حالت روی "ورود" یا "خروج" کلیک کنید</li>
-                    <li>اطلاعات در حافظه مرورگر ذخیره می‌شود</li>
-                </ul>
+            <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-radius: 10px; font-size: 13px; color: #0369a1;">
+                <strong>💡 نکته:</strong> مطمئن شوید NFC گوشی فعال است. کارت را آهسته به پشت گوشی نزدیک کنید.
             </div>
         </div>
     </div>
-    
-    <!-- مودال تنظیمات -->
-    <div id="settingsModal" class="hidden" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    ">
-        <div style="
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 400px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        ">
-            <h2 style="margin-bottom: 20px;">⚙️ تنظیمات</h2>
-            
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px;">نام شرکت:</label>
-                <input type="text" id="companyName" style="
-                    width: 100%;
-                    padding: 10px;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    font-size: 16px;
-                " placeholder="نام شرکت شما">
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px;">آپلود لوگو:</label>
-                <input type="file" id="logoUpload" accept="image/*" style="
-                    width: 100%;
-                    padding: 10px;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                ">
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <button onclick="exportData()" style="
-                    width: 100%;
-                    padding: 12px;
-                    background: #10b981;
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    margin-bottom: 10px;
-                ">
-                    📥 خروجی Excel
-                </button>
-                
-                <button onclick="clearData()" style="
-                    width: 100%;
-                    padding: 12px;
-                    background: #ef4444;
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 16px;
-                ">
-                    🗑️ پاک‌سازی اطلاعات
-                </button>
-            </div>
-            
-            <button onclick="hideSettings()" style="
-                width: 100%;
-                padding: 12px;
-                background: #6b7280;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 16px;
-            ">
-                بستن
-            </button>
-        </div>
-    </div>
-     <h1>🔓 تست مجوز NFC</h1>
-    
-    <div class="step">
-        <h3>مرحله ۱: بررسی پشتیبانی</h3>
-        <div id="step1">در حال بررسی...</div>
-    </div>
-    
-    <div class="step">
-        <h3>مرحله ۲: درخواست مجوز</h3>
-        <button onclick="requestPermission()">درخواست دسترسی NFC</button>
-        <div id="step2"></div>
-    </div>
-    
-    <div class="step">
-        <h3>مرحله ۳: تست خواندن</h3>
-        <button onclick="testRead()" id="testBtn" disabled>تست خواندن کارت</button>
-        <div id="step3"></div>
-    </div>
-    
-    <script>
-    let nfcPermission = 'prompt';
-    let ndefReader = null;
-    
-    // بررسی پشتیبانی
-    if ('NDEFReader' in window) {
-        document.getElementById('step1').innerHTML = '✅ Web NFC پشتیبانی می‌شود';
-        ndefReader = new NDEFReader();
-    } else {
-        document.getElementById('step1').innerHTML = '❌ Web NFC پشتیبانی نمی‌شود';
-    }
-    
-    // درخواست مجوز
-    async function requestPermission() {
-        const step2 = document.getElementById('step2');
-        step2.innerHTML = '⏳ در حال درخواست...';
-        
-        try {
-            // روش مستقیم
-            await ndefReader.scan();
-            nfcPermission = 'granted';
-            step2.innerHTML = '✅ مجوز داده شد';
-            document.getElementById('testBtn').disabled = false;
-            
-        } catch (error) {
-            if (error.name === 'NotAllowedError') {
-                step2.innerHTML = '❌ کاربر دسترسی را رد کرد';
-                nfcPermission = 'denied';
-                
-                // نمایش راهنمای دستی
-                showManualGuide();
-            } else {
-                step2.innerHTML = `❌ خطا: ${error.message}`;
-            }
-        }
-    }
-    
-    // نمایش راهنمای دستی
-    function showManualGuide() {
-        const guide = `
-            <div style="background: #fff3cd; padding: 15px; margin: 15px 0; border-radius: 10px;">
-                <strong>راهنمای دستی:</strong>
-                <ol>
-                    <li>روی آدرس بار کلیک کنید (بالای صفحه)</li>
-                    <li>آیکون قفل یا "Not secure" را بزنید</li>
-                    <li>"Site settings" را انتخاب کنید</li>
-                    <li>به پایین بروید و "NFC" را پیدا کنید</li>
-                    <li>آن را به "Allow" تغییر دهید</li>
-                    <li>صفحه را رفرش کنید</li>
-                </ol>
-                <button onclick="location.reload()">🔄 رفرش صفحه</button>
-            </div>
-        `;
-        document.getElementById('step2').innerHTML += guide;
-    }
-    
-    // تست خواندن
-    async function testRead() {
-        const step3 = document.getElementById('step3');
-        step3.innerHTML = '📱 کارت را نزدیک کنید...';
-        
-        ndefReader.onreading = (event) => {
-            step3.innerHTML = `✅ کارت خوانده شد!<br>ID: ${event.serialNumber}`;
-        };
-        
-        ndefReader.onreadingerror = () => {
-            step3.innerHTML = '❌ خطا در خواندن';
-        };
-        
-        // Timeout
-        setTimeout(() => {
-            if (step3.innerHTML.includes('کارت را نزدیک کنید')) {
-                step3.innerHTML = '⏰ زمان به پایان رسید';
-            }
-        }, 10000);
-    }
-    </script>
     
     <script src="app.js"></script>
 </body>
 </html>
-
