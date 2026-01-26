@@ -1,364 +1,221 @@
-// اضافه کردن این کد در ابتدای app.js
-async function fixNFCPermission() {
-    // 1. بررسی آیا قبلاً مجوز داده شده
-    if (localStorage.getItem('nfc_permission_granted') === 'true') {
-        AppState.nfcPermission = 'granted';
-        return;
-    }
-    
-    // 2. ایجاد دکمه مجوز بزرگ
-    const permissionOverlay = document.createElement('div');
-    permissionOverlay.id = 'permissionOverlay';
-    permissionOverlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-    `;
-    
-    permissionOverlay.innerHTML = `
-        <div style="
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 400px;
-            text-align: center;
-        ">
-            <h2 style="color: #4f46e5;">🔓 مجوز NFC مورد نیاز است</h2>
-            <p style="margin: 20px 0;">برای استفاده از سیستم حضور و غیاب، باید اجازه دسترسی به NFC را بدهید.</p>
-            
-            <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 20px 0;">
-                <strong>راهنمای سریع:</strong>
-                <p style="font-size: 14px; margin-top: 10px;">
-                    1. دکمه زیر را بزنید<br>
-                    2. پنجره مجوز را تایید کنید<br>
-                    3. اگر پنجره نیامد، مراحل راهنما را دنبال کنید
-                </p>
-            </div>
-            
-            <button id="grantPermissionBtn" style="
-                padding: 15px 30px;
-                background: #4f46e5;
-                color: white;
-                border: none;
-                border-radius: 10px;
-                font-size: 16px;
-                cursor: pointer;
-                width: 100%;
-                margin-bottom: 10px;
-            ">
-                ✅ دادن مجوز NFC
-            </button>
-            
-            <button onclick="location.reload()" style="
-                padding: 10px 20px;
-                background: #6b7280;
-                color: white;
-                border: none;
-                border-radius: 10px;
-                cursor: pointer;
-            ">
-                🔄 رفرش بعد از دادن مجوز
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(permissionOverlay);
-    
-    // دکمه مجوز
-    document.getElementById('grantPermissionBtn').onclick = async () => {
-        try {
-            const ndef = new NDEFReader();
-            await ndef.scan();
-            
-            // موفقیت‌آمیز
-            localStorage.setItem('nfc_permission_granted', 'true');
-            permissionOverlay.remove();
-            
-            // رفرش صفحه
-            location.reload();
-            
-        } catch (error) {
-            // خطا - نمایش راهنمای بیشتر
-            permissionOverlay.innerHTML = `
-                <div style="
-                    background: white;
-                    padding: 30px;
-                    border-radius: 20px;
-                    max-width: 400px;
-                    text-align: right;
-                ">
-                    <h2 style="color: #dc2626;">⚠️ نیاز به تنظیم دستی</h2>
-                    <p>لطفاً این مراحل را دنبال کنید:</p>
-                    
-                    <ol style="padding-right: 20px; margin: 20px 0;">
-                        <li>روی آدرس بار کلیک کنید (بالای صفحه)</li>
-                        <li>آیکون 🔒 یا "Not secure" را بزنید</li>
-                        <li>"Site settings" را انتخاب کنید</li>
-                        <li>به پایین اسکرول کنید تا NFC را ببینید</li>
-                        <li>روی NFC کلیک کرده و "Allow" را انتخاب کنید</li>
-                        <li>صفحه را رفرش کنید (F5 یا دکمه زیر)</li>
-                    </ol>
-                    
-                    <div style="text-align: center;">
-                        <button onclick="location.reload()" style="
-                            padding: 12px 25px;
-                            background: #4f46e5;
-                            color: white;
-                            border: none;
-                            border-radius: 10px;
-                            font-size: 16px;
-                            cursor: pointer;
-                            margin: 10px;
-                        ">
-                            🔄 رفرش صفحه
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-    };
-}
-
-// در initApp فراخوانی کنید:
-// if (AppState.nfcPermission !== 'granted') {
-//     fixNFCPermission();
-// }
 // وضعیت برنامه
-const AppState = {
-    mode: 'checkin', // 'checkin' یا 'checkout'
+const state = {
+    mode: 'checkin',
     nfcSupported: false,
+    nfcPermission: 'prompt',
     isScanning: false,
     lastScan: null,
-    todayLogs: [],
-    employees: {},
-    settings: {
-        companyName: 'شرکت من',
-        autoExport: false
-    }
+    logs: [],
+    employees: {}
 };
 
 // المنت‌های DOM
 const elements = {
-    scanBtn: null,
-    scanText: null,
-    scanIcon: null,
-    nfcStatus: null,
-    nfcStatusText: null,
-    lastScanCard: null,
-    lastScanResult: null,
-    lastScanTime: null,
-    todayLogs: null,
-    todayCount: null,
-    modeCheckin: null,
-    modeCheckout: null
+    nfcStatus: document.getElementById('nfcStatus'),
+    nfcStatusText: document.getElementById('nfcStatusText'),
+    scanBtn: document.getElementById('scanBtn'),
+    scanText: document.getElementById('scanText'),
+    scanIcon: document.getElementById('scanIcon'),
+    modeCheckin: document.getElementById('modeCheckin'),
+    modeCheckout: document.getElementById('modeCheckout'),
+    scanResult: document.getElementById('scanResult'),
+    scanTime: document.getElementById('scanTime'),
+    todayLogs: document.getElementById('todayLogs'),
+    todayCount: document.getElementById('todayCount')
 };
+
+// شروع برنامه
+window.addEventListener('DOMContentLoaded', initApp);
 
 // اولیه‌سازی برنامه
 async function initApp() {
-    // ذخیره المنت‌ها
-    cacheElements();
+    console.log('🚀 شروع برنامه...');
     
     // بارگذاری داده‌های ذخیره شده
-    loadSavedData();
+    loadData();
     
-    // بررسی پشتیبانی NFC
+    // بررسی و درخواست مجوز NFC
     await checkNFCSupport();
     
     // به‌روزرسانی UI
     updateUI();
     
     // رویداد visibility change
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    console.log('🚀 اپلیکیشن آماده است');
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) updateUI();
+    });
 }
 
-// ذخیره المنت‌ها در cache
-function cacheElements() {
-    elements.scanBtn = document.getElementById('scanBtn');
-    elements.scanText = document.getElementById('scanText');
-    elements.scanIcon = document.getElementById('scanIcon');
-    elements.nfcStatus = document.getElementById('nfcStatus');
-    elements.nfcStatusText = document.getElementById('nfcStatusText');
-    elements.lastScanCard = document.getElementById('lastScanCard');
-    elements.lastScanResult = document.getElementById('lastScanResult');
-    elements.lastScanTime = document.getElementById('lastScanTime');
-    elements.todayLogs = document.getElementById('todayLogs');
-    elements.todayCount = document.getElementById('todayCount');
-    elements.modeCheckin = document.getElementById('modeCheckin');
-    elements.modeCheckout = document.getElementById('modeCheckout');
-}
-
-// بارگذاری داده‌های ذخیره شده
-function loadSavedData() {
+// بارگذاری داده‌ها
+function loadData() {
     try {
-        // بارگذاری تنظیمات
-        const savedSettings = localStorage.getItem('nfcAttendance_settings');
-        if (savedSettings) {
-            AppState.settings = { ...AppState.settings, ...JSON.parse(savedSettings) };
-        }
+        const savedLogs = localStorage.getItem('nfc_logs');
+        if (savedLogs) state.logs = JSON.parse(savedLogs);
         
-        // بارگذاری لاگ‌های امروز
-        const savedLogs = localStorage.getItem('nfcAttendance_logs');
-        if (savedLogs) {
-            AppState.todayLogs = JSON.parse(savedLogs);
-        }
+        const savedEmployees = localStorage.getItem('nfc_employees');
+        if (savedEmployees) state.employees = JSON.parse(savedEmployees);
         
-        // بارگذاری اطلاعات کارمندان
-        const savedEmployees = localStorage.getItem('nfcAttendance_employees');
-        if (savedEmployees) {
-            AppState.employees = JSON.parse(savedEmployees);
-        }
-        
-        // بارگذاری آخرین اسکن
-        const savedLastScan = localStorage.getItem('nfcAttendance_lastScan');
-        if (savedLastScan) {
-            AppState.lastScan = JSON.parse(savedLastScan);
-        }
+        const savedLastScan = localStorage.getItem('nfc_lastScan');
+        if (savedLastScan) state.lastScan = JSON.parse(savedLastScan);
         
         console.log('📂 داده‌ها بارگذاری شدند');
-    } catch (error) {
-        console.error('❌ خطا در بارگذاری داده‌ها:', error);
+    } catch (e) {
+        console.error('❌ خطا در بارگذاری:', e);
     }
 }
 
 // ذخیره داده‌ها
 function saveData() {
     try {
-        localStorage.setItem('nfcAttendance_settings', JSON.stringify(AppState.settings));
-        localStorage.setItem('nfcAttendance_logs', JSON.stringify(AppState.todayLogs));
-        localStorage.setItem('nfcAttendance_employees', JSON.stringify(AppState.employees));
-        if (AppState.lastScan) {
-            localStorage.setItem('nfcAttendance_lastScan', JSON.stringify(AppState.lastScan));
+        localStorage.setItem('nfc_logs', JSON.stringify(state.logs));
+        localStorage.setItem('nfc_employees', JSON.stringify(state.employees));
+        if (state.lastScan) {
+            localStorage.setItem('nfc_lastScan', JSON.stringify(state.lastScan));
         }
-    } catch (error) {
-        console.error('❌ خطا در ذخیره داده‌ها:', error);
+    } catch (e) {
+        console.error('❌ خطا در ذخیره:', e);
     }
 }
 
 // بررسی پشتیبانی NFC
 async function checkNFCSupport() {
+    if (!('NDEFReader' in window)) {
+        updateStatus('❌ Web NFC پشتیبانی نمی‌شود. از Chrome Android استفاده کنید.', 'error');
+        elements.scanBtn.disabled = true;
+        return;
+    }
+    
+    updateStatus('✅ NFC پشتیبانی می‌شود', 'success');
+    state.nfcSupported = true;
+    
+    // تست مجوز
+    await testNFCPermission();
+}
+
+// تست مجوز NFC
+async function testNFCPermission() {
     try {
-        if (!('NDEFReader' in window)) {
-            throw new Error('Web NFC API پشتیبانی نمی‌شود');
-        }
-        
-        // تست دسترسی
         const ndef = new NDEFReader();
-        
-        // درخواست مجوز از کاربر (با timeout)
-        const abortController = new AbortController();
-        const timeoutId = setTimeout(() => abortController.abort(), 1000);
-        
-        try {
-            await ndef.scan({ signal: abortController.signal });
-            clearTimeout(timeoutId);
-            
-            AppState.nfcSupported = true;
-            updateNFCStatus('✅ NFC پشتیبانی می‌شود', 'success');
-            console.log('✅ Web NFC پشتیبانی می‌شود');
-        } catch (scanError) {
-            if (scanError.name === 'AbortError') {
-                // Timeout - احتمالاً کاربر دسترسی نداده
-                AppState.nfcSupported = true;
-                updateNFCStatus('🔄 منتظر دسترسی NFC...', 'info');
-                console.log('⚠️ منتظر دسترسی کاربر');
-            } else {
-                throw scanError;
-            }
-        }
-        
+        await ndef.scan();
+        state.nfcPermission = 'granted';
+        updateStatus('✅ مجوز NFC داده شده', 'success');
     } catch (error) {
-        AppState.nfcSupported = false;
-        updateNFCStatus(`❌ خطا: ${error.message}`, 'error');
-        console.error('❌ خطای NFC:', error);
+        if (error.name === 'NotAllowedError') {
+            state.nfcPermission = 'denied';
+            updateStatus('❌ دسترسی NFC رد شده. لطفاً مجوز دهید.', 'error');
+            showPermissionGuide();
+        } else {
+            state.nfcPermission = 'prompt';
+            updateStatus('🔒 لطفاً مجوز NFC را بدهید', 'info');
+        }
     }
 }
 
-// به‌روزرسانی وضعیت NFC
-function updateNFCStatus(message, type = 'info') {
+// نمایش راهنمای مجوز
+function showPermissionGuide() {
+    const guide = `
+        <div style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 8px; color: #856404;">
+            <strong>راهنمای دادن مجوز:</strong>
+            <ol style="margin-top: 10px; padding-right: 20px;">
+                <li>روی آدرس بار (URL) در بالا کلیک کنید</li>
+                <li>آیکون 🔒 یا "Not secure" را بزنید</li>
+                <li>"Site settings" را انتخاب کنید</li>
+                <li>به پایین اسکرول کنید و "NFC" را پیدا کنید</li>
+                <li>آن را به "Allow" تغییر دهید</li>
+                <li>صفحه را رفرش کنید</li>
+            </ol>
+            <button onclick="location.reload()" style="
+                margin-top: 10px;
+                padding: 8px 16px;
+                background: #856404;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            ">
+                🔄 رفرش صفحه
+            </button>
+        </div>
+    `;
+    
+    elements.nfcStatus.innerHTML += guide;
+}
+
+// به‌روزرسانی وضعیت
+function updateStatus(message, type = 'info') {
     elements.nfcStatusText.textContent = message;
     elements.nfcStatus.className = 'status-card';
     
-    if (type === 'success') {
-        elements.nfcStatus.classList.add('success');
-    } else if (type === 'error') {
-        elements.nfcStatus.classList.add('error');
-    }
+    if (type === 'success') elements.nfcStatus.classList.add('status-success');
+    if (type === 'error') elements.nfcStatus.classList.add('status-error');
 }
 
 // شروع اسکن NFC
 async function startNFCScan() {
-    if (AppState.isScanning) return;
-    if (!AppState.nfcSupported) {
-        alert('NFC پشتیبانی نمی‌شود. لطفاً از Chrome Android 89+ استفاده کنید.');
+    if (!state.nfcSupported) {
+        alert('NFC پشتیبانی نمی‌شود');
         return;
     }
     
-    // شروع اسکن
-    AppState.isScanning = true;
+    if (state.isScanning) return;
+    
+    state.isScanning = true;
     updateScanButton(true);
-    updateNFCStatus('🔄 در حال اسکن... کارت را نزدیک کنید', 'info');
+    updateStatus('🔄 در حال اسکن... کارت را نزدیک کنید', 'info');
     
     try {
         const ndef = new NDEFReader();
         
         // Timeout برای جلوگیری از انتظار بی‌پایان
         const timeoutId = setTimeout(() => {
-            stopNFCScan();
-            updateNFCStatus('⏰ زمان اسکن به پایان رسید', 'error');
-            showNotification('زمان اسکن به پایان رسید');
-        }, 15000);
+            stopScanning();
+            updateStatus('⏰ زمان اسکن به پایان رسید', 'error');
+        }, 30000);
         
-        // شروع اسکن
+        console.log('🔄 شروع اسکن NFC...');
+        
+        // درخواست مجوز و شروع اسکن
         await ndef.scan();
         
-        // رویداد خواندن کارت
-        ndef.onreading = async (event) => {
+        ndef.onreading = (event) => {
             clearTimeout(timeoutId);
+            console.log('✅ کارت خوانده شد:', event);
             
             try {
-                // پردازش کارت
-                await processNFCTag(event);
-                
-                // توقف اسکن
-                stopNFCScan();
-                
+                processNFCTag(event);
+                updateStatus('✅ کارت با موفقیت خوانده شد', 'success');
+                stopScanning();
             } catch (error) {
-                console.error('❌ خطا در پردازش کارت:', error);
-                updateNFCStatus('❌ خطا در پردازش کارت', 'error');
-                showNotification('خطا در پردازش کارت');
-                stopNFCScan();
+                console.error('❌ خطا در پردازش:', error);
+                updateStatus('❌ خطا در پردازش کارت', 'error');
+                stopScanning();
             }
         };
         
-        // رویداد خطا
         ndef.onreadingerror = (error) => {
             clearTimeout(timeoutId);
-            console.error('❌ خطای خواندن NFC:', error);
-            updateNFCStatus('❌ خطا در خواندن کارت', 'error');
-            showNotification('خطا در خواندن کارت');
-            stopNFCScan();
+            console.error('❌ خطای NFC:', error);
+            updateStatus('❌ خطا در خواندن کارت', 'error');
+            stopScanning();
         };
         
     } catch (error) {
-        console.error('❌ خطای شروع اسکن:', error);
-        updateNFCStatus(`❌ خطا: ${error.message}`, 'error');
-        showNotification(`خطا: ${error.message}`);
-        stopNFCScan();
+        console.error('❌ خطای اسکن:', error);
+        
+        if (error.name === 'NotAllowedError') {
+            updateStatus('❌ دسترسی رد شده. لطفاً مجوز دهید.', 'error');
+            showPermissionGuide();
+        } else {
+            updateStatus(`❌ خطا: ${error.message}`, 'error');
+        }
+        
+        stopScanning();
     }
 }
 
 // توقف اسکن
-function stopNFCScan() {
-    AppState.isScanning = false;
+function stopScanning() {
+    state.isScanning = false;
     updateScanButton(false);
 }
 
@@ -378,159 +235,105 @@ function updateScanButton(isScanning) {
 }
 
 // پردازش کارت NFC
-async function processNFCTag(event) {
-    console.log('📱 کارت NFC خوانده شد:', event);
+function processNFCTag(event) {
+    console.log('🔍 پردازش کارت...');
     
-    // استخراج اطلاعات کارت
-    const tagData = extractTagData(event);
+    // استخراج اطلاعات
+    const tagId = event.serialNumber || `tag_${Date.now()}`;
+    let employeeName = 'کاربر ناشناس';
+    let tagData = {};
+    
+    // خواندن رکوردهای کارت
+    for (const record of event.message.records) {
+        if (record.recordType === "text") {
+            const decoder = new TextDecoder();
+            const text = decoder.decode(record.data);
+            
+            try {
+                const jsonData = JSON.parse(text);
+                if (jsonData.name) employeeName = jsonData.name;
+                tagData = { ...jsonData };
+            } catch {
+                employeeName = text || employeeName;
+            }
+        }
+    }
     
     // پیدا کردن یا ایجاد کارمند
-    const employee = await findOrCreateEmployee(tagData);
+    if (!state.employees[tagId]) {
+        state.employees[tagId] = {
+            id: tagId,
+            name: employeeName,
+            firstSeen: new Date().toISOString()
+        };
+    }
     
-    // ثبت حضور/غیاب
-    const attendanceRecord = createAttendanceRecord(employee);
+    const employee = state.employees[tagId];
     
-    // ذخیره در تاریخچه
-    AppState.todayLogs.unshift(attendanceRecord);
+    // ایجاد رکورد حضور/غیاب
+    const now = new Date();
+    const logEntry = {
+        id: `log_${Date.now()}`,
+        employeeId: tagId,
+        employeeName: employee.name,
+        type: state.mode,
+        timestamp: now.toISOString(),
+        time: now.toLocaleTimeString('fa-IR'),
+        date: now.toLocaleDateString('fa-IR'),
+        rawData: tagData
+    };
+    
+    // اضافه کردن به تاریخچه
+    state.logs.unshift(logEntry);
     
     // ذخیره آخرین اسکن
-    AppState.lastScan = {
+    state.lastScan = {
         employee: employee,
-        record: attendanceRecord,
-        timestamp: new Date().toISOString()
+        log: logEntry,
+        timestamp: now.toISOString()
     };
     
     // ذخیره داده‌ها
     saveData();
     
+    // نمایش نتیجه
+    showScanResult(employee, logEntry);
+    
     // به‌روزرسانی UI
     updateUI();
     
-    // نمایش نتیجه
-    showScanResult(employee, attendanceRecord);
+    // بازخورد
+    provideFeedback();
     
-    // بازخورد صوتی/لمسی
-    provideFeedback('success');
-    
-    console.log('✅ حضور/غیاب ثبت شد:', attendanceRecord);
-}
-
-// استخراج اطلاعات از کارت NFC
-function extractTagData(event) {
-    const tagId = event.serialNumber || `tag_${Date.now()}`;
-    let tagName = 'کاربر ناشناس';
-    let tagData = {};
-    
-    // بررسی رکوردهای کارت
-    for (const record of event.message.records) {
-        if (record.recordType === "text") {
-            const textDecoder = new TextDecoder();
-            const textData = textDecoder.decode(record.data);
-            
-            try {
-                // تلاش برای پارس JSON
-                const jsonData = JSON.parse(textData);
-                if (jsonData.name) tagName = jsonData.name;
-                tagData = { ...tagData, ...jsonData };
-            } catch {
-                // اگر JSON نیست، استفاده از متن ساده
-                tagName = textData || tagName;
-            }
-        }
-    }
-    
-    return {
-        id: tagId,
-        name: tagName,
-        rawData: tagData,
-        timestamp: new Date().toISOString()
-    };
-}
-
-// پیدا کردن یا ایجاد کارمند
-async function findOrCreateEmployee(tagData) {
-    // اگر کارمند از قبل وجود دارد
-    if (AppState.employees[tagData.id]) {
-        return AppState.employees[tagData.id];
-    }
-    
-    // ایجاد کارمند جدید
-    const newEmployee = {
-        id: tagData.id,
-        name: tagData.name,
-        cardId: tagData.id,
-        firstSeen: new Date().toISOString(),
-        lastSeen: new Date().toISOString(),
-        totalCheckins: 0,
-        totalCheckouts: 0
-    };
-    
-    // ذخیره کارمند
-    AppState.employees[tagData.id] = newEmployee;
-    
-    // نمایش پیام
-    showNotification(`کارمند جدید ثبت شد: ${tagData.name}`);
-    
-    return newEmployee;
-}
-
-// ایجاد رکورد حضور/غیاب
-function createAttendanceRecord(employee) {
-    const now = new Date();
-    
-    // به‌روزرسانی آمار کارمند
-    if (AppState.mode === 'checkin') {
-        employee.totalCheckins = (employee.totalCheckins || 0) + 1;
-    } else {
-        employee.totalCheckouts = (employee.totalCheckouts || 0) + 1;
-    }
-    employee.lastSeen = now.toISOString();
-    
-    return {
-        id: `log_${Date.now()}`,
-        employeeId: employee.id,
-        employeeName: employee.name,
-        type: AppState.mode,
-        timestamp: now.toISOString(),
-        time: now.toLocaleTimeString('fa-IR'),
-        date: now.toLocaleDateString('fa-IR'),
-        dateISO: now.toISOString().split('T')[0]
-    };
+    console.log('📝 رکورد ثبت شد:', logEntry);
 }
 
 // نمایش نتیجه اسکن
-function showScanResult(employee, record) {
-    // نمایش در کارت آخرین اسکن
-    elements.lastScanResult.innerHTML = `
-        <strong>${employee.name}</strong>
-        <span class="badge ${record.type === 'checkin' ? 'success' : 'error'}">
-            ${record.type === 'checkin' ? 'ورود' : 'خروج'}
-        </span>
+function showScanResult(employee, log) {
+    const typeText = log.type === 'checkin' ? 'ورود' : 'خروج';
+    const typeClass = log.type === 'checkin' ? 'checkin' : 'checkout';
+    
+    elements.scanResult.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <strong>${employee.name}</strong>
+            <span class="log-type ${typeClass}">${typeText}</span>
+        </div>
+        <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
+            شناسه: ${employee.id.substring(0, 8)}...
+        </div>
     `;
-    elements.lastScanTime.textContent = `${record.time} - ${record.date}`;
     
-    // هایلایت کارت
-    elements.lastScanCard.classList.add('success');
-    setTimeout(() => {
-        elements.lastScanCard.classList.remove('success');
-    }, 2000);
-    
-    // نمایش نوتیفیکیشن
-    showNotification(
-        `${employee.name} - ${record.type === 'checkin' ? 'ورود' : 'خروج'} ثبت شد`,
-        'success'
-    );
+    elements.scanTime.textContent = `${log.time} - ${log.date}`;
 }
 
-// بازخورد صوتی/لمسی
-function provideFeedback(type) {
+// بازخورد
+function provideFeedback() {
     // ویبره
     if (navigator.vibrate) {
-        const pattern = type === 'success' ? [100, 50, 100] : [200];
-        navigator.vibrate(pattern);
+        navigator.vibrate([100, 50, 100]);
     }
     
-    // صدای بیپ (با Web Audio API)
+    // صدای بیپ
     try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
@@ -539,7 +342,7 @@ function provideFeedback(type) {
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
-        oscillator.frequency.value = type === 'success' ? 800 : 400;
+        oscillator.frequency.value = 800;
         oscillator.type = 'sine';
         
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
@@ -547,72 +350,45 @@ function provideFeedback(type) {
         
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.5);
-    } catch (error) {
-        // اگر Web Audio API کار نکرد
-        console.log('🔇 Web Audio API پشتیبانی نمی‌شود');
+    } catch (e) {
+        console.log('🔇 صدا پشتیبانی نمی‌شود');
     }
 }
 
-// نمایش نوتیفیکیشن
-function showNotification(message, type = 'info') {
-    // استفاده از Notification API اگر اجازه داده شده
-    if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('حضور و غیاب NFC', {
-            body: message,
-            icon: 'icons/icon-192.png'
-        });
-    }
-    
-    // یا نمایش alert ساده
-    console.log(`📢 ${message}`);
-}
-
-// تغییر حالت ورود/خروج
+// تغییر حالت
 function setMode(mode) {
-    AppState.mode = mode;
+    state.mode = mode;
     
-    // به‌روزرسانی UI
     elements.modeCheckin.classList.toggle('active', mode === 'checkin');
     elements.modeCheckout.classList.toggle('active', mode === 'checkout');
     
-    // نمایش پیام
-    const modeText = mode === 'checkin' ? 'ورود' : 'خروج';
-    showNotification(`حالت تغییر کرد به: ${modeText}`);
+    console.log(`🔀 حالت تغییر کرد به: ${mode === 'checkin' ? 'ورود' : 'خروج'}`);
 }
 
 // به‌روزرسانی UI
 function updateUI() {
-    // به‌روزرسانی تعداد لاگ‌های امروز
+    // به‌روزرسانی تعداد امروز
     const today = new Date().toISOString().split('T')[0];
-    const todayCount = AppState.todayLogs.filter(log => 
-        log.dateISO === today
-    ).length;
+    const todayItems = state.logs.filter(log => 
+        log.timestamp.startsWith(today)
+    );
     
-    elements.todayCount.textContent = todayCount;
-    elements.todayCount.className = `badge ${todayCount > 0 ? 'success' : 'error'}`;
+    elements.todayCount.textContent = todayItems.length;
+    elements.todayCount.className = `badge ${todayItems.length > 0 ? 'badge-success' : 'badge-error'}`;
     
     // نمایش لاگ‌های امروز
-    renderTodayLogs();
+    renderTodayLogs(todayItems);
     
     // نمایش آخرین اسکن
-    if (AppState.lastScan) {
-        const { employee, record } = AppState.lastScan;
-        elements.lastScanResult.innerHTML = `
-            <strong>${employee.name}</strong>
-            <span class="badge ${record.type === 'checkin' ? 'success' : 'error'}">
-                ${record.type === 'checkin' ? 'ورود' : 'خروج'}
-            </span>
-        `;
-        elements.lastScanTime.textContent = `${record.time} - ${record.date}`;
+    if (state.lastScan) {
+        const { employee, log } = state.lastScan;
+        showScanResult(employee, log);
     }
 }
 
 // رندر لاگ‌های امروز
-function renderTodayLogs() {
-    const today = new Date().toISOString().split('T')[0];
-    const todayItems = AppState.todayLogs.filter(log => log.dateISO === today);
-    
-    if (todayItems.length === 0) {
+function renderTodayLogs(logs) {
+    if (logs.length === 0) {
         elements.todayLogs.innerHTML = `
             <div style="text-align: center; padding: 20px; color: #6b7280;">
                 📭 امروز هیچ رویدادی ثبت نشده
@@ -621,7 +397,7 @@ function renderTodayLogs() {
         return;
     }
     
-    elements.todayLogs.innerHTML = todayItems.map(log => `
+    elements.todayLogs.innerHTML = logs.map(log => `
         <div class="log-item">
             <div>
                 <div class="log-name">${log.employeeName}</div>
@@ -634,56 +410,39 @@ function renderTodayLogs() {
     `).join('');
 }
 
-// مدیریت visibility change
-function handleVisibilityChange() {
-    if (!document.hidden) {
-        // وقتی کاربر به اپ برمی‌گردد
-        updateUI();
-    }
-}
-
-// نمایش تنظیمات
-function showSettings() {
-    document.getElementById('settingsModal').classList.remove('hidden');
-}
-
-// پنهان کردن تنظیمات
-function hideSettings() {
-    document.getElementById('settingsModal').classList.add('hidden');
-}
-
-// خروجی داده‌ها به Excel
+// خروجی داده‌ها
 function exportData() {
+    if (state.logs.length === 0) {
+        alert('داده‌ای برای خروجی وجود ندارد');
+        return;
+    }
+    
     try {
-        // ساخت داده‌های CSV
-        let csvContent = "data:text/csv;charset=utf-8,\ufeff";
+        // ساخت CSV
+        let csv = 'نام,نوع,زمان,تاریخ,شناسه کارت\n';
         
-        // هدر
-        csvContent += "نام,نوع,زمان,تاریخ,شناسه کارت\n";
-        
-        // داده‌ها
-        AppState.todayLogs.forEach(log => {
-            const row = [
-                `"${log.employeeName}"`,
-                log.type === 'checkin' ? 'ورود' : 'خروج',
-                `"${log.time}"`,
-                `"${log.date}"`,
-                `"${log.employeeId}"`
-            ].join(',');
-            
-            csvContent += row + "\n";
+        state.logs.forEach(log => {
+            csv += `"${log.employeeName}",`;
+            csv += `${log.type === 'checkin' ? 'ورود' : 'خروج'},`;
+            csv += `"${log.time}",`;
+            csv += `"${log.date}",`;
+            csv += `"${log.employeeId}"\n`;
         });
         
-        // ایجاد لینک دانلود
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `attendance_${new Date().toISOString().split('T')[0]}.csv`);
+        // ایجاد فایل
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `attendance_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        showNotification('✅ فایل با موفقیت دانلود شد');
+        alert('✅ فایل با موفقیت دانلود شد');
         
     } catch (error) {
         console.error('❌ خطا در خروجی:', error);
@@ -691,19 +450,55 @@ function exportData() {
     }
 }
 
-// پاک‌سازی اطلاعات
+// پاک‌سازی داده‌ها
 function clearData() {
-    if (confirm('آیا مطمئن هستید؟ این عمل همه اطلاعات را پاک می‌کند.')) {
+    if (confirm('آیا مطمئن هستید؟ همه داده‌ها پاک خواهند شد.')) {
+        state.logs = [];
+        state.employees = {};
+        state.lastScan = null;
+        
         localStorage.clear();
-        AppState.todayLogs = [];
-        AppState.employees = {};
-        AppState.lastScan = null;
         updateUI();
-        showNotification('✅ اطلاعات پاک شدند');
+        
+        elements.scanResult.innerHTML = 'هنوز اسکنی انجام نشده';
+        elements.scanTime.textContent = '';
+        
+        alert('✅ داده‌ها پاک شدند');
     }
 }
 
-// نصب Service Worker
+// تست NFC
+function testNFC() {
+    console.log('🧪 شروع تست NFC...');
+    
+    // تست مجوز
+    if (!state.nfcSupported) {
+        alert('NFC پشتیبانی نمی‌شود');
+        return;
+    }
+    
+    // شبیه‌سازی کارت
+    const testEvent = {
+        serialNumber: 'test_' + Date.now(),
+        message: {
+            records: [{
+                recordType: "text",
+                data: new TextEncoder().encode(JSON.stringify({
+                    name: 'کاربر تست',
+                    id: '001',
+                    department: 'تست'
+                }))
+            }]
+        }
+    };
+    
+    // پردازش کارت تست
+    processNFCTag(testEvent);
+    
+    alert('✅ تست موفقیت‌آمیز بود! اطلاعات نمایش داده شد.');
+}
+
+// Service Worker برای PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
@@ -711,31 +506,7 @@ if ('serviceWorker' in navigator) {
                 console.log('✅ ServiceWorker ثبت شد:', registration.scope);
             })
             .catch(error => {
-                console.log('❌ ثبت ServiceWorker ناموفق بود:', error);
+                console.log('❌ ثبت ServiceWorker ناموفق:', error);
             });
     });
 }
-
-// درخواست مجوز نوتیفیکیشن
-if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
-}
-
-// راه‌اندازی اپ
-window.addEventListener('DOMContentLoaded', initApp);
-
-// رویداد قبل از بسته شدن
-window.addEventListener('beforeunload', (event) => {
-    if (AppState.isScanning) {
-        event.preventDefault();
-        event.returnValue = 'در حال اسکن هستید. آیا مطمئنید می‌خواهید خارج شوید؟';
-    }
-});
-
-// اضافه کردن رویداد کلیک برای مودال
-document.getElementById('settingsModal').addEventListener('click', (e) => {
-    if (e.target.id === 'settingsModal') {
-        hideSettings();
-    }
-});
-
