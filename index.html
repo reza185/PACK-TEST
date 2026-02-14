@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم حضور و غیاب NFC</title>
+    <title>سیستم حضور و غیاب NFC پیشرفته</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3b82f6">
     <style>
@@ -15,7 +15,7 @@
         }
         
         body {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(135deg, #1e293b, #0f172a);
             min-height: 100vh;
             padding: 20px;
             display: flex;
@@ -30,63 +30,97 @@
         
         .card {
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
         
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
         }
         
         .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
-            border-radius: 50%;
+            width: 88px;
+            height: 88px;
+            background: linear-gradient(145deg, #2563eb, #7c3aed);
+            border-radius: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 40px;
+            margin: 0 auto 16px;
+            font-size: 44px;
             color: white;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.5);
         }
         
         h1 {
-            color: #1f2937;
+            color: #0f172a;
             font-size: 24px;
-            margin-bottom: 10px;
+            font-weight: 700;
+            margin-bottom: 6px;
         }
         
         .subtitle {
-            color: #6b7280;
+            color: #475569;
             font-size: 14px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .stat-box {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        
+        .stat-unit {
+            font-size: 12px;
+            color: #64748b;
+            margin-right: 4px;
         }
         
         .status-card {
             background: #f8fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 2px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 16px;
+            margin: 16px 0;
+            border: 2px solid #e2e8f0;
         }
         
         .status-title {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 5px;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 4px;
         }
         
         .status-message {
             font-size: 16px;
-            color: #1f2937;
+            color: #0f172a;
             font-weight: 600;
         }
         
         .status-success {
-            border-color: #10b981;
-            background: #ecfdf5;
+            border-color: #22c55e;
+            background: #f0fdf4;
         }
         
         .status-error {
@@ -96,94 +130,231 @@
         
         .mode-selector {
             display: flex;
-            background: #f3f4f6;
-            border-radius: 12px;
-            padding: 5px;
-            margin: 25px 0;
+            background: #f1f5f9;
+            border-radius: 50px;
+            padding: 4px;
+            margin: 20px 0;
         }
         
         .mode-btn {
             flex: 1;
-            padding: 15px;
+            padding: 14px;
             text-align: center;
             font-weight: 600;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 50px;
             transition: all 0.3s;
+            font-size: 15px;
         }
         
         .mode-btn.active {
             background: white;
-            color: #3b82f6;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            color: #2563eb;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .scan-btn {
             width: 100%;
             padding: 20px;
-            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            background: linear-gradient(145deg, #2563eb, #7c3aed);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 60px;
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 12px;
+            margin: 16px 0;
             transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        .scan-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        .scan-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 30px -10px rgba(37, 99, 235, 0.5);
         }
         
         .scan-btn:disabled {
-            background: #9ca3af;
+            background: #94a3b8;
             cursor: not-allowed;
-            transform: none;
+            opacity: 0.7;
         }
         
-        .result-card {
-            background: #f8fafc;
-            border-radius: 12px;
+        /* مودال پاپاپ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
             padding: 20px;
-            margin: 20px 0;
-            border: 2px solid #e5e7eb;
-            min-height: 120px;
         }
         
-        .result-title {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 10px;
+        .modal-card {
+            background: white;
+            border-radius: 40px;
+            padding: 28px;
+            max-width: 450px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            direction: ltr;
         }
         
-        .result-content {
+        .modal-card[dir="rtl"] {
+            direction: rtl;
+        }
+        
+        .employee-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 30px;
+            background: linear-gradient(145deg, #2563eb, #7c3aed);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+            border: 4px solid #e2e8f0;
+        }
+        
+        .employee-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .employee-code {
+            text-align: center;
+            color: #64748b;
             font-size: 16px;
-            color: #1f2937;
+            margin-bottom: 24px;
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 50px;
+            display: inline-block;
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .time-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .time-box {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .time-label {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        
+        .time-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        
+        .time-value.special {
+            color: #2563eb;
+        }
+        
+        .attendance-badge {
+            background: #f1f5f9;
+            border-radius: 50px;
+            padding: 12px 20px;
+            text-align: center;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+        
+        .badge-present {
+            background: #22c55e;
+            color: white;
+        }
+        
+        .badge-absent {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .badge-leave {
+            background: #eab308;
+            color: white;
+        }
+        
+        .close-btn {
+            width: 100%;
+            padding: 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 60px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            background: #1d4ed8;
+        }
+        
+        .hidden {
+            display: none !important;
         }
         
         .history-card {
-            background: white;
-            border-radius: 12px;
+            background: #f8fafc;
+            border-radius: 24px;
             padding: 20px;
-            margin-top: 25px;
-            border: 1px solid #e5e7eb;
+            margin-top: 24px;
+            border: 1px solid #e2e8f0;
         }
         
         .history-title {
             font-size: 16px;
-            color: #1f2937;
-            margin-bottom: 15px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .today-badge {
+            background: #2563eb;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
         }
         
         .log-item {
-            padding: 10px;
-            border-bottom: 1px solid #f3f4f6;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -195,18 +366,19 @@
         
         .log-name {
             font-weight: 600;
+            color: #0f172a;
         }
         
         .log-type {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: 500;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-weight: 600;
         }
         
         .checkin {
-            background: #d1fae5;
-            color: #065f46;
+            background: #dcfce7;
+            color: #166534;
         }
         
         .checkout {
@@ -215,38 +387,8 @@
         }
         
         .log-time {
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 4px;
-        }
-        
-        .pulse {
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-right: 8px;
-        }
-        
-        .badge-success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .badge-error {
-            background: #fee2e2;
-            color: #991b1b;
+            font-size: 11px;
+            color: #64748b;
         }
         
         .controls {
@@ -257,15 +399,17 @@
         
         .control-btn {
             flex: 1;
-            padding: 12px;
+            padding: 14px;
             border: none;
-            border-radius: 8px;
+            border-radius: 60px;
             font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
         }
         
         .export-btn {
-            background: #10b981;
+            background: #22c55e;
             color: white;
         }
         
@@ -275,12 +419,58 @@
         }
         
         .test-btn {
-            background: #f59e0b;
+            background: #eab308;
             color: white;
         }
         
-        .hidden {
-            display: none !important;
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .info-note {
+            margin-top: 20px;
+            padding: 16px;
+            background: #eff6ff;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .absence-list {
+            margin-top: 16px;
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 16px;
+        }
+        
+        .absence-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #cbd5e1;
+        }
+        
+        .absence-item:last-child {
+            border-bottom: none;
+        }
+        
+        .absence-date {
+            font-weight: 500;
+        }
+        
+        .absence-type {
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            background: #eab308;
+            color: white;
         }
     </style>
 </head>
@@ -289,9 +479,29 @@
         <div class="card">
             <!-- هدر -->
             <div class="header">
-                <div class="logo">📱</div>
+                <div class="logo">🏢</div>
                 <h1>سیستم حضور و غیاب NFC</h1>
-                <p class="subtitle">ورود و خروج هوشمند با کارت</p>
+                <p class="subtitle">نسخه پیشرفته - مدیریت پرسنل</p>
+            </div>
+            
+            <!-- آمار کلی -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">کل پرسنل</div>
+                    <div class="stat-value" id="totalEmployees">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">حاضر امروز</div>
+                    <div class="stat-value" id="presentToday">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">غایب امروز</div>
+                    <div class="stat-value" id="absentToday">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">مرخصی امروز</div>
+                    <div class="stat-value" id="leaveToday">0</div>
+                </div>
             </div>
             
             <!-- وضعیت NFC -->
@@ -303,36 +513,34 @@
             <!-- انتخاب حالت -->
             <div class="mode-selector">
                 <div class="mode-btn active" id="modeCheckin" onclick="setMode('checkin')">
-                    🟢 ورود
+                    ✅ ورود
                 </div>
                 <div class="mode-btn" id="modeCheckout" onclick="setMode('checkout')">
-                    🔴 خروج
+                    ❌ خروج
                 </div>
             </div>
             
             <!-- دکمه اسکن -->
             <button class="scan-btn pulse" id="scanBtn" onclick="startNFCScan()">
-                <span id="scanIcon">📲</span>
+                <span id="scanIcon">📱</span>
                 <span id="scanText">اسکن کارت NFC</span>
             </button>
             
-            <!-- نتیجه اسکن -->
-            <div class="result-card">
+            <!-- نتیجه اسکن (ساده) -->
+            <div class="result-card hidden" id="simpleResult">
                 <div class="result-title">نتیجه آخرین اسکن</div>
-                <div class="result-content" id="scanResult">
-                    هنوز اسکنی انجام نشده
-                </div>
+                <div class="result-content" id="scanResult"></div>
                 <div class="log-time" id="scanTime"></div>
             </div>
             
             <!-- تاریخچه امروز -->
             <div class="history-card">
                 <div class="history-title">
-                    📋 تاریخچه امروز
-                    <span class="badge" id="todayCount">0</span>
+                    <span>📋 تاریخچه امروز</span>
+                    <span class="today-badge" id="todayCount">0</span>
                 </div>
                 <div id="todayLogs">
-                    <div style="text-align: center; padding: 20px; color: #6b7280;">
+                    <div style="text-align: center; padding: 20px; color: #64748b;">
                         📭 هیچ رویدادی ثبت نشده
                     </div>
                 </div>
@@ -352,9 +560,58 @@
             </div>
             
             <!-- راهنما -->
-            <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-radius: 10px; font-size: 13px; color: #0369a1;">
-                <strong>💡 نکته:</strong> مطمئن شوید NFC گوشی فعال است. کارت را آهسته به پشت گوشی نزدیک کنید.
+            <div class="info-note">
+                <strong>💡 ساعت کاری:</strong> ۶:۰۰ تا ۲۱:۰۰ (تهران) - هر پرسنل روزانه یک ورود و یک خروج
             </div>
+        </div>
+    </div>
+    
+    <!-- مودال نمایش اطلاعات پرسنل -->
+    <div id="employeeModal" class="modal-overlay hidden">
+        <div class="modal-card" dir="rtl" id="modalContent">
+            <!-- عکس پرسنل -->
+            <div class="employee-avatar" id="employeeAvatar">👤</div>
+            
+            <!-- نام و نام خانوادگی -->
+            <div class="employee-name" id="employeeName">نام پرسنل</div>
+            
+            <!-- کد پرسنلی -->
+            <div class="employee-code" id="employeeCode">کد پرسنلی: ۱۲۳۴۵</div>
+            
+            <!-- زمان‌ها -->
+            <div class="time-grid">
+                <div class="time-box">
+                    <div class="time-label">🟢 ساعت ورود</div>
+                    <div class="time-value" id="checkinTime">--:--</div>
+                </div>
+                <div class="time-box">
+                    <div class="time-label">🔴 ساعت خروج</div>
+                    <div class="time-value" id="checkoutTime">--:--</div>
+                </div>
+            </div>
+            
+            <!-- مجموع ساعات کار -->
+            <div class="attendance-badge" id="totalHours">
+                ⏱️ مجموع ساعات کار: ۰ ساعت
+            </div>
+            
+            <!-- روزهای غیبت و مرخصی -->
+            <div class="absence-list" id="absenceContainer">
+                <div style="font-weight: 600; margin-bottom: 10px;">📅 روزهای غیبت/مرخصی</div>
+                <div id="absenceList">
+                    <div class="absence-item">
+                        <span class="absence-date">۱۴۰۲/۱۲/۰۱</span>
+                        <span class="absence-type">غیبت</span>
+                    </div>
+                    <div class="absence-item">
+                        <span class="absence-date">۱۴۰۲/۱۲/۰۲</span>
+                        <span class="absence-type">مرخصی</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- دکمه بستن -->
+            <button class="close-btn" onclick="closeModal()">بستن</button>
         </div>
     </div>
     
